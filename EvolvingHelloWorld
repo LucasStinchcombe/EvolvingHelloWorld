@@ -6,12 +6,18 @@ from LevenshteinDistance import editdistance
 choices = ['insert', 'replace', 'delete']
 
 def fitness(current, target):
-   fitness = editdistance(current,target)**2
+   fitness = (10*editdistance(current,target))**2
+   for (i,j) in map(None, list(current), list(target)):
+       fitness -= ord(i) if i!=None else 0
+       fitness += ord(j) if j!=None else 0
    return fitness
 
 def mutate(current):
    choice = choices[random.randint(0,2)]
-   i = random.randint(0,len(current)-1)
+   try:
+       i = random.randint(0,len(current)-1)
+   except ValueError:
+       i = 0
    if choice == 'insert':
        mutated = current[:i] + random.choice(string.printable) + current[i:]
    elif choice == 'replace':
@@ -43,7 +49,7 @@ def main():
             current = successor
             current_fitness = successor_fitness
             print_gen(gen,current_fitness, current)
-        if current_fitness == 0:
+        if current_fitness == 0 or gen>20000:
             break
 
 if __name__=="__main__":
