@@ -4,11 +4,11 @@ import string
 from LevenshteinDistance import editdistance
 
 # Constants
-choices = ['insert', 'replace', 'delete']
-target = "Lucas Stinchcombe"
+mutations = { 'relative':['point mutation'], 'random':['insert', 'replace', 'delete']}
+target = "Lucas Stinchchombe made this"
 
 def fitness(current, target):
-    fitness = 2*(editdistance(current,target))
+    fitness = (editdistance(current,target))**2
     for (i,j) in map(None, list(current), list(target)):
         if min(i,j) != None:
             i,j = ord(i), ord(j)
@@ -20,33 +20,37 @@ def fitness(current, target):
 
 def mutation(dna):
     # randomly select dna operation and dna position
-    choice = choices[random.randint(0,2)]
+    operation = random.choice(mutations.keys())
+    operation = random.choice(mutations[operation])
     i = random_position( dna )
 
-    if choice == 'insert':
+    if operation == 'insert':
         mutated = dna[:i] + random.choice(string.printable) + dna[i:]
-    elif choice == 'replace':
+    elif operation == 'replace':
         mutated = dna[:i] + random.choice(string.printable) + dna[i+1:]
-    else: # choice == 'delete'
+    elif operation == 'delete':
         mutated = dna[:i] + dna[i+1:]
-
+    else: # if operation == 'point mutation'
+        point = ((ord(dna[i])-9) % 118) + 9 + random.choice([-1,1])
+        mutated = dna[:i] + chr(point) + dna[i+1:]
     return mutated
 
 def next_gen(gen, pop, survival):
-
     # get, print and shuffle Parents
     parents = pop[:survival]
-    if gen % 20 == 0:
+    if (gen%10 == 0 and gen<200) or (gen%25 == 0 and gen>=200):
         print_gen(gen,parents)
-    parents = sorted(parents, key=lambda k: len(k['dna']))
-    # random.shuffle(parents)
 
-    # pair up parents
+    # sort parents based on dna length (of "species")
+    parents = sorted(parents, key=lambda k: len(k['dna']))
+
+    # pair up parents such that dna lengths of pairs are close
     parent_pairs = [(parents.pop(0),parents.pop(0)) for _ in range(len(parents)/2) ]
 
     # get Children by "crossing over" dna
     for (p1,p2) in parent_pairs:
         if p1<p2: p1,p2 = p2,p1
+        points = [random_position( p2['dna'] ) for _ in range(2)]
         i = random_position( p2['dna'] )
 
         def offspring(i):
@@ -54,7 +58,8 @@ def next_gen(gen, pop, survival):
             c2 = p2['dna'][:i] + p1['dna'][i:]
             return [c1,c2]
 
-        children = [child for child in offspring(i)] + [p1['dna'],p2['dna']]
+        # mutate children
+        children = [child for i in points for child in offspring(i)]
         children = mutate(*children)
 
         # assign chilren to next_pop
@@ -80,7 +85,7 @@ def random_position(dna):
         return 0
 
 def mutate(c1,c2,c3,c4):
-    return [mutation(c1),c2,mutation(c3),c4]
+    return [mutation(c1), c2, c3, mutation(c4)]
 
 def sort(population):
     return sorted(population, key=lambda k: k['fitness'])
@@ -90,7 +95,7 @@ def print_gen(gen, population):
     print "%5i" % (gen,),
     print '-' *30
     for i in population:
-            print "%10i %10i  => %25s" % (row, i['fitness'], repr(i['dna']))
+            print "%10i %10i  => %40s" % (row, i['fitness'], repr(i['dna']))
             row +=1
 
 ###### MAIN ######
