@@ -3,54 +3,110 @@ import random
 import string
 from LevenshteinDistance import editdistance
 
+# Constants
 choices = ['insert', 'replace', 'delete']
+target = "Lucas Stinchcombe"
 
 def fitness(current, target):
-   fitness = (10*editdistance(current,target))**2
-   for (i,j) in map(None, list(current), list(target)):
-       fitness -= ord(i) if i!=None else 0
-       fitness += ord(j) if j!=None else 0
-   return fitness
+    fitness = 2*(editdistance(current,target))
+    for (i,j) in map(None, list(current), list(target)):
+        if min(i,j) != None:
+            i,j = ord(i), ord(j)
+        else:
+            i = ord(max(i,j))
+            j = -i
+        fitness += 2 * abs(i-j)
+    return fitness
 
-def mutate(current):
-   choice = choices[random.randint(0,2)]
-   try:
-       i = random.randint(0,len(current)-1)
-   except ValueError:
-       i = 0
-   if choice == 'insert':
-       mutated = current[:i] + random.choice(string.printable) + current[i:]
-   elif choice == 'replace':
-       mutated = current[:i] + random.choice(string.printable) + current[i+1:]
-   else: # choice == 'delete'
-       mutated = current[:i] + current[i+1:]
+def mutation(dna):
+    # randomly select dna operation and dna position
+    choice = choices[random.randint(0,2)]
+    i = random_position( dna )
 
-   return mutated
+    if choice == 'insert':
+        mutated = dna[:i] + random.choice(string.printable) + dna[i:]
+    elif choice == 'replace':
+        mutated = dna[:i] + random.choice(string.printable) + dna[i+1:]
+    else: # choice == 'delete'
+        mutated = dna[:i] + dna[i+1:]
 
-def print_gen(gen, fitness, string):
-    print "%8i %8i %20s" % (gen, fitness, string)
+    return mutated
+
+def next_gen(gen, pop, survival):
+
+    # get, print and shuffle Parents
+    parents = pop[:survival]
+    if gen % 20 == 0:
+        print_gen(gen,parents)
+    parents = sorted(parents, key=lambda k: len(k['dna']))
+    # random.shuffle(parents)
+
+    # pair up parents
+    parent_pairs = [(parents.pop(0),parents.pop(0)) for _ in range(len(parents)/2) ]
+
+    # get Children by "crossing over" dna
+    for (p1,p2) in parent_pairs:
+        if p1<p2: p1,p2 = p2,p1
+        i = random_position( p2['dna'] )
+
+        def offspring(i):
+            c1 = p1['dna'][:i] + p2['dna'][i:]
+            c2 = p2['dna'][:i] + p1['dna'][i:]
+            return [c1,c2]
+
+        children = [child for child in offspring(i)] + [p1['dna'],p2['dna']]
+        children = mutate(*children)
+
+        # assign chilren to next_pop
+        if 'next_pop' in locals():
+            next_pop.extend(children)
+        else:
+            next_pop = children
+
+    # return sorted list of dictionaries with keys 'dna' and 'fitness'
+    return sort(compute_fitness(next_pop))
+
+##### helper functions #####
+def first_generation(size):
+    return [random.choice(string.printable) for i in range(size)]
+
+def compute_fitness(population):
+    return [{'dna':i, 'fitness':fitness(i,target)} for i in population]
+
+def random_position(dna):
+    try:
+        return random.randint(0,len(dna)-1)
+    except ValueError:
+        return 0
+
+def mutate(c1,c2,c3,c4):
+    return [mutation(c1),c2,mutation(c3),c4]
+
+def sort(population):
+    return sorted(population, key=lambda k: k['fitness'])
+
+def print_gen(gen, population):
+    row = 1
+    print "%5i" % (gen,),
+    print '-' *30
+    for i in population:
+            print "%10i %10i  => %25s" % (row, i['fitness'], repr(i['dna']))
+            row +=1
 
 ###### MAIN ######
 def main():
     # Initialize first generation
-    gen = 1
-    current = "a"
-    target = "Hello, World!"
-    current_fitness = fitness(current, target)
-
-    # Print first gen
-    print_gen(gen,current_fitness, current)
+    gen = 0
+    size = 20
+    survival = 10
+    population = sort(compute_fitness(first_generation(size)))
 
     while True:
+        population = next_gen(gen, population, survival)
         gen+=1
-        successor = mutate(current)
-        successor_fitness = fitness(successor, target)
-        if successor_fitness < current_fitness:
-            current = successor
-            current_fitness = successor_fitness
-            print_gen(gen,current_fitness, current)
-        if current_fitness == 0 or gen>20000:
+        if population[0]['fitness'] == 0:
             break
+    print_gen(gen, population[:survival])
 
 if __name__=="__main__":
     main()
