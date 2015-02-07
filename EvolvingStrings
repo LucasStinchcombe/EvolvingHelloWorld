@@ -6,16 +6,18 @@ from LevenshteinDistance import editdistance
 # Constants
 mutations = { 'relative':['point mutation'], 'random':['insert', 'replace', 'delete']}
 target = "Lucas Stinchchombe made this"
+max_char = max(list(string.printable))
 
 def fitness(current, target):
-    fitness = (editdistance(current,target))**2
+    # fitness = (editdistance(current,target))**2
+    fitness = 0
     for (i,j) in map(None, list(current), list(target)):
         if min(i,j) != None:
             i,j = ord(i), ord(j)
         else:
-            i = ord(max(i,j))
+            i = ord(max_char)
             j = -i
-        fitness += 2 * abs(i-j)
+        fitness += abs(i-j)
     return fitness
 
 def mutation(dna):
