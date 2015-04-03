@@ -2,8 +2,13 @@
 
 This is a python script modeled off of evolution of dna through mutation. The script uses four sources of mutation (insertion, deletion, replacement, and point mutation) as well as random "crossing-over" of parent dna to produce variations in our gene pool. The "fitness" of an individual piece of dna is computed by taking the absolute difference between the unicode values of each character of the target dna and the individual's dna. Those with the lowest "fitness" values will successfully pass on their genes.
 
-    Output for target="Lucas Stinchcombe made this"
+    Output for:
+        target="Lucas Stinchcombe made this"
+        population size = 20
+        survival = 10
 
+    *each block denotes a generation (displaying every 25 generations)
+    *second column displays fitness value (fitness = 0 means target is reached)
     0 ------------------------------
          1       6553  =>                                      'M'
          2       6557  =>                                      'Q'
