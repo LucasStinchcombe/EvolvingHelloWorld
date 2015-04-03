@@ -214,7 +214,7 @@ This is a python script modeled off of evolution of dna through mutation. The sc
          9          2  =>            'Lucas Suinchcomce made this'
         10          2  =>            'Lucas Suinchcomce made this'
     460 ------------------------------
-         **1          0  =>            'Lucas Stinchcombe made this'**
+         1          0  =>            'Lucas Stinchcombe made this'
          2          1  =>            'Lucas Suinchcombe made this'
          3          1  =>            'Lucas Suinchcombe made this'
          4          1  =>            'Lucas Suinchcombe made this'
