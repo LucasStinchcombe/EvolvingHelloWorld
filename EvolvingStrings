@@ -40,7 +40,7 @@ def mutation(dna):
 def next_gen(gen, pop, survival):
     # get, print and shuffle Parents
     parents = pop[:survival]
-    if (gen%10 == 0 and gen<200) or (gen%25 == 0 and gen>=200):
+    if (gen%25 == 0):
         print_gen(gen,parents)
 
     # sort parents based on dna length (of "species")
