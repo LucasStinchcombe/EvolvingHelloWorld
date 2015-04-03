@@ -5,7 +5,7 @@ from LevenshteinDistance import editdistance
 
 # Constants
 mutations = { 'relative':['point mutation'], 'random':['insert', 'replace', 'delete']}
-target = "Lucas Stinchchombe made this"
+target = "Lucas Stinchcombe made this"
 max_char = max(list(string.printable))
 
 def fitness(current, target):
